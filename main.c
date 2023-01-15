@@ -12,6 +12,35 @@ struct vertex{
     float z;
 };
 
+struct linedef{
+    int id;
+    int id_V1;
+    int id_V2;
+    int blocking;
+    int special;
+    //dont draw flag needed
+    int id_S1;//Sidedef front
+    int id_S2;
+};
+
+struct sidedef{
+    int sector;
+    char Textmiddle[9]; //Textures name are 8 char length, but +1 for the str end.
+};
+
+struct sector{
+    int floor;
+    int ceil;
+    
+    char* textfloor;
+    char* textceil;
+    
+    int lightlevel;
+    int id;
+};
+
+
+
 struct vertex vertices[C_SIZE*C_SIZE];
 
 int main(int argc, char *argv[]){
@@ -38,6 +67,10 @@ int main(int argc, char *argv[]){
     fprintf(fptr,"%s","namespace = \"zdoom\";\n");
     printf("Finished!\n");
 
+    //Writes each linedefs
+
+    //Writes each sidedefs
+
 
     //Writes each vertex in the file
     printf("Writing Vertices");
@@ -49,6 +82,12 @@ int main(int argc, char *argv[]){
     }
     printf("Finished!\n");
 
+    //Writes each sectors...
+
+    //Things here...
+
+    
+    printf("Job Done!\n");
     fclose(fptr);
     return 0;
 }
