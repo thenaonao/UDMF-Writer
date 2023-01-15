@@ -255,7 +255,7 @@ int main(int argc, char *argv[]){
         if(i!=0 && linedefs[i].id==0){
             continue;
         }
-        fprintf(fptr,"linedef // %d\n{\nv1 = %d;\nv2 = %d;\nsidefront = %d;\nsideback = %d;\n%s = true;\n}\n\n",linedefs[i].id,linedefs[i].id_V1,linedefs[i].id_V2,linedefs[i].id_S1,linedefs[i].id_S2,(linedefs[i].blocking==1)?"blocking":"twosided");
+        fprintf(fptr,"linedef // %d\n{\nv1 = %d;\nv2 = %d;\nspecial = %d;\nsidefront = %d;\nsideback = %d;\n%s = true;\n}\n\n",linedefs[i].id,linedefs[i].id_V1,linedefs[i].id_V2,linedefs[i].special,linedefs[i].id_S1,linedefs[i].id_S2,(linedefs[i].blocking==1)?"blocking":"twosided");
         if(i%((C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))/10)==0 &&i!=0){
             printf(".");
         }
