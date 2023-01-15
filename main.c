@@ -3,7 +3,7 @@
 #include <string.h>
 #include <time.h>
 
-#define C_SIZE 768
+#define C_SIZE 1024
 
 struct vertex{
     int id;
