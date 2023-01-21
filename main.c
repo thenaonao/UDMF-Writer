@@ -36,8 +36,8 @@ struct sector{
     int floor;//Floor height
     int ceil;//Ceil height Both should be 0, because we use the vertices to draw the terrain.
     
-    char* textfloor;
-    char* textceil; //texturefloor = "FLOOR0_1"; textureceiling = "CEIL1_1";
+    char textfloor[9];
+    char textceil[9]; //texturefloor = "FLOOR0_1"; textureceiling = "CEIL1_1";
     
     int lightlevel; //Can be interesing if we want to cast fixed shadow from terrain... (For the future heh)
     unsigned int id; //Sector ID
@@ -47,14 +47,21 @@ struct sector{
 
 struct vertex vertices[C_SIZE*C_SIZE];
 struct linedef linedefs[(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))]; //Ouch thats a lot!
-struct sidedef sidedefs[(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))]; //should be the same as linedefs
+struct sidedef sidedefs[2*(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))]; //should be the same as linedefs
 struct sector sectors[2*(C_SIZE-1)*(C_SIZE-1)];
 
 int main(int argc, char *argv[]){
     float h=C_MAP_LENGTH/C_SIZE;
     srand(time(NULL));
     
-    int counter=0;
+    unsigned int counter=0;
+    unsigned int sidecounter=0;
+    unsigned int sectorcounter=0;
+
+    printf("Theorical number max of vertices: %d\n",C_SIZE*C_SIZE);
+    printf("Theorical number max of linedefs: %d\n",(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1)));
+    printf("Theorical number max of sidedefs: %d\n",2*(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1)));
+    printf("Theorical number max of sectors : %d\n",2*(C_SIZE-1)*(C_SIZE-1));
 
     printf("Creating the Vertices");
     for(float y=0;y<C_SIZE;y++){
@@ -73,9 +80,8 @@ int main(int argc, char *argv[]){
     }
     printf("Finished!\n");
 
-    counter=0;
-    int sidecounter=0;
-    int sectorcounter=0;
+    counter=0; //We reset it... I use it as "Linecounter"
+
     printf("Creating the Linedefs & Sidedefs & Sectors");
     for(float y=0;y<C_SIZE;y++){
         for(float x=0;x<C_SIZE;x++){
@@ -91,6 +97,13 @@ int main(int argc, char *argv[]){
                 linedefs[counter].id_S1=counter;
                 linedefs[counter].id_S2=-1;
                 counter++;
+
+                //SL1
+                sidedefs[sidecounter].id=sidecounter;
+                strcpy(sidedefs[sidecounter].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter-1;
+                sidecounter++;
+
             }else if (y==C_SIZE-1){
                 linedefs[counter].id=counter;
                 linedefs[counter].id_V1=(int)(x+y*C_SIZE);
@@ -101,6 +114,14 @@ int main(int argc, char *argv[]){
                 linedefs[counter].id_S1=counter;
                 linedefs[counter].id_S2=-1;
                 counter++;
+
+                //SL1
+                sidedefs[sidecounter].id=sidecounter;
+                strcpy(sidedefs[sidecounter].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter-(C_SIZE-1)*(C_SIZE-1)+1;
+                sidecounter++;
+
+                sectorcounter+=2;
             }else if(x==0 && y==0){
                 //L1
                 linedefs[counter].id=counter;
@@ -136,11 +157,33 @@ int main(int argc, char *argv[]){
                 //SL1
                 sidedefs[sidecounter].id=sidecounter;
                 strcpy(sidedefs[sidecounter].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter;
                 sidecounter++;
+
                 //SL2
                 sidedefs[sidecounter].id=sidecounter;
                 strcpy(sidedefs[sidecounter].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter;
                 sidecounter++;
+
+                //SL3-1
+                sidedefs[sidecounter].id=sidecounter;
+                strcpy(sidedefs[sidecounter].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter;
+                //SL3-2
+                sidedefs[sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))].id=sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1));
+                strcpy(sidedefs[sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter+1;
+                sidecounter++;
+
+                //Sector
+                sectors[sectorcounter].floor=0;
+                sectors[sectorcounter].ceil=4096;
+                strcpy(sectors[sectorcounter].textfloor,"FLOOR0_1");
+                strcpy(sectors[sectorcounter].textceil,"CEIL1_1");                
+                sectors[sectorcounter].lightlevel=1024; //Can be interesing if we want to cast fixed shadow from terrain... (For the future heh)
+                sectors[sectorcounter].id=sectorcounter; //Sector ID
+                sectorcounter+=2;
 
             }else if(x==0){
                 //L1
@@ -177,7 +220,46 @@ int main(int argc, char *argv[]){
                 //SL1
                 sidedefs[sidecounter].id=sidecounter;
                 strcpy(sidedefs[sidecounter].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter;
+                //SL1-2
+                sidedefs[sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))].id=sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1));
+                strcpy(sidedefs[sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter-(C_SIZE-1)*(C_SIZE-1)+1;
                 sidecounter++;
+
+                //SL2-1
+                sidedefs[sidecounter].id=sidecounter;
+                strcpy(sidedefs[sidecounter].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter;
+                sidecounter++;
+
+                //SL3-1
+                sidedefs[sidecounter].id=sidecounter;
+                strcpy(sidedefs[sidecounter].Textmiddle,"-");
+                 sidedefs[sidecounter].sector=sectorcounter;
+                //SL3-2
+                sidedefs[sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))].id=sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1));
+                strcpy(sidedefs[sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter+1;
+                sidecounter++;
+
+                //Sector1
+                sectors[sectorcounter].floor=0;
+                sectors[sectorcounter].ceil=4096;
+                strcpy(sectors[sectorcounter].textfloor,"FLOOR0_1");
+                strcpy(sectors[sectorcounter].textceil,"CEIL1_1");                
+                sectors[sectorcounter].lightlevel=1024;
+                sectors[sectorcounter].id=sectorcounter;
+                //Sector2
+                sectors[sectorcounter].floor=0;
+                sectors[sectorcounter].ceil=4096;
+                strcpy(sectors[sectorcounter].textfloor,"FLOOR0_1");
+                strcpy(sectors[sectorcounter].textceil,"CEIL1_1");                
+                sectors[sectorcounter].lightlevel=1024; 
+                sectors[sectorcounter].id=sectorcounter-(C_SIZE-1)*(C_SIZE-1)+1;
+
+                sectorcounter+=2;
+
             }else if(y==0){
                 //L1
                 linedefs[counter].id=counter;
@@ -213,11 +295,38 @@ int main(int argc, char *argv[]){
                 //SL1
                 sidedefs[sidecounter].id=sidecounter;
                 strcpy(sidedefs[sidecounter].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter;
                 sidecounter++;
-                //SL2
+
+                //SL2-1
                 sidedefs[sidecounter].id=sidecounter;
                 strcpy(sidedefs[sidecounter].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter;
+                //SL2-2
+                sidedefs[sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))].id=sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1));
+                strcpy(sidedefs[sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter-1;
                 sidecounter++;
+
+                //SL3-1
+                sidedefs[sidecounter].id=sidecounter;
+                strcpy(sidedefs[sidecounter].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter;
+                //SL3-2
+                sidedefs[sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))].id=sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1));
+                strcpy(sidedefs[sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter+1;
+                sidecounter++;
+
+
+                //Sector
+                sectors[sectorcounter].floor=0;
+                sectors[sectorcounter].ceil=4096;
+                strcpy(sectors[sectorcounter].textfloor,"FLOOR0_1");
+                strcpy(sectors[sectorcounter].textceil,"CEIL1_1");                
+                sectors[sectorcounter].lightlevel=1024;
+                sectors[sectorcounter].id=sectorcounter; 
+                sectorcounter+=2;
             }else{
                 //L1
                 linedefs[counter].id=counter;
@@ -250,14 +359,49 @@ int main(int argc, char *argv[]){
                 linedefs[counter].id_S2=-1;
                 counter++;
 
-                //SL1
+                //SL1-1
                 sidedefs[sidecounter].id=sidecounter;
                 strcpy(sidedefs[sidecounter].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter;
+                //SL1-2
+                sidedefs[sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))].id=sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1));
+                strcpy(sidedefs[sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter-(C_SIZE-1)*(C_SIZE-1)+1;
                 sidecounter++;
-                //SL2
+
+                //SL2-1
                 sidedefs[sidecounter].id=sidecounter;
                 strcpy(sidedefs[sidecounter].Textmiddle,"-");
+                //SL2-2
+                sidedefs[sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))].id=sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1));
+                strcpy(sidedefs[sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter-1;
                 sidecounter++;
+
+                //SL3-1
+                sidedefs[sidecounter].id=sidecounter;
+                strcpy(sidedefs[sidecounter].Textmiddle,"-");
+                //SL3-2
+                sidedefs[sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))].id=sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1));
+                strcpy(sidedefs[sidecounter+(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))].Textmiddle,"-");
+                sidedefs[sidecounter].sector=sectorcounter+1;
+                sidecounter++;
+
+                //Sector1
+                sectors[sectorcounter].floor=0;
+                sectors[sectorcounter].ceil=4096;
+                strcpy(sectors[sectorcounter].textfloor,"FLOOR0_1");
+                strcpy(sectors[sectorcounter].textceil,"CEIL1_1");                
+                sectors[sectorcounter].lightlevel=1024; 
+                sectors[sectorcounter].id=sectorcounter;
+                //Sector2
+                sectors[sectorcounter].floor=0;
+                sectors[sectorcounter].ceil=4096;
+                strcpy(sectors[sectorcounter].textfloor,"FLOOR0_1");
+                strcpy(sectors[sectorcounter].textceil,"CEIL1_1");                
+                sectors[sectorcounter].lightlevel=1024; 
+                sectors[sectorcounter].id=sectorcounter-(C_SIZE-1)*(C_SIZE-1)+1;
+                sectorcounter+=2;
             }
             if( ((int)y*C_SIZE+(int)x)%(C_SIZE*C_SIZE/10)==0 &&((int)y*C_SIZE+(int)x)!=0){
                 printf(".");
@@ -285,19 +429,44 @@ int main(int argc, char *argv[]){
     }
     printf("Finished!\n");
 
-    //Writes each linedefs & sidedefs... They should be written in the same loop.(Because we have no backsided sidedefs).
-    printf("Writing Linedefs & Sidedefs");
+    //Writes each linedefs...
+    printf("Writing Linedefs");
     for(int i=0;i<(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1));i++){
         if(i!=0 && linedefs[i].id==0){
             continue;
         }
-        fprintf(fptr,"linedef // %d\n{\nv1 = %d;\nv2 = %d;\nspecial = %d;\nsidefront = %d;\nsideback = %d;\n%s = true;\n}\n\n",linedefs[i].id,linedefs[i].id_V1,linedefs[i].id_V2,linedefs[i].special,linedefs[i].id_S1,linedefs[i].id_S2,(linedefs[i].blocking==1)?"blocking":"twosided");
+        fprintf(fptr,"linedef // %d\n{\nv1 = %d;\nv2 = %d;\nspecial = %d;\nsidefront = %d;\nsideback = %d;\n%s = true;\ndontdraw = true;\n}\n\n",linedefs[i].id,linedefs[i].id_V1,linedefs[i].id_V2,linedefs[i].special,linedefs[i].id_S1,linedefs[i].id_S2,(linedefs[i].blocking==1)?"blocking":"twosided");
         if(i%((C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))/10)==0 &&i!=0){
             printf(".");
         }
     }
     printf("Finished!\n");
+
+    //Writes each sidedefs...
+    printf("Writing Sidedefs");
+    for(int i=0;i<2*(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1));i++){
+        if( i!=0 && sidedefs[i].sector==0 ){
+            continue;
+        }
+        fprintf(fptr,"sidedef // %d\n{\noffsetx = 0;\noffsety = 0;\ntexturetop = \"-\";\ntexturebottom = \"-\";\ntexturemiddle = \"%s\";\nsector = %d;\n}\n\n",sidedefs[i].id,sidedefs[i].Textmiddle,sidedefs[i].sector);
+        if(i%((2*(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1)))/10)==0 &&i!=0){
+            printf(".");
+        }
+    }
+    printf("Finished!\n");
+
     //Writes each sectors...
+    printf("Writing Sectors");
+    for(int i=0;i<2*(C_SIZE-1)*(C_SIZE-1);i++){
+        if(i!=0 && sectors[i].id==0){
+            continue;
+        }
+        //fprintf(fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\nspecial = %d;\nid = %d;\n}\n\n",sectors[i].id,sectors[i].floor,sectors[i].ceil,sectors[i].textfloor,sectors[i].textceil,160,0,sectors[i].id);
+        fprintf(fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\nspecial = %d;\n}\n\n",sectors[i].id,sectors[i].floor,sectors[i].ceil,sectors[i].textfloor,sectors[i].textceil,160,0);
+        if(i%(2*(C_SIZE-1)*(C_SIZE-1)/10)==0 &&i!=0){
+            printf(".");
+        }
+    }
 
     //Things here...
 
