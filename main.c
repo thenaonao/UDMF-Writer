@@ -3,7 +3,7 @@
 #include <string.h>
 #include <time.h>
 
-#define C_SIZE 4
+#define C_SIZE 128
 #define C_MAP_LENGTH 8192.0
 
 #define DEBUG
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]){
                 linedefs[counter].id_S2=-1;
                 counter++;
 
-                //SL1
+                //SL2
                 sidedefs[sidecounter].id=sidecounter;
                 strcpy(sidedefs[sidecounter].Textmiddle,"-");
                 sidedefs[sidecounter].sector=(x*2)+y*2*(C_SIZE-1)-1;
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]){
                 //SL1
                 sidedefs[sidecounter].id=sidecounter;
                 strcpy(sidedefs[sidecounter].Textmiddle,"-");
-                sidedefs[sidecounter].sector=(x*2)+y*2*(C_SIZE-1)-C_SIZE;
+                sidedefs[sidecounter].sector=(x*2)+y*2*(C_SIZE-1)-2*(C_SIZE-1)+1;
                 sidecounter++;
             }else if(x==0 && y==0){
                 //L1
@@ -179,11 +179,11 @@ int main(int argc, char *argv[]){
                 //SL3-1
                 sidedefs[sidecounter].id=sidecounter;
                 strcpy(sidedefs[sidecounter].Textmiddle,"-");
-                sidedefs[sidecounter].sector=(x*2)+y*2*(C_SIZE-1);
+                sidedefs[sidecounter].sector=(x*2)+y*2*(C_SIZE-1)+1;
                 //SL3-2
                 sidedefs[backsidecounter].id=backsidecounter;
                 strcpy(sidedefs[backsidecounter].Textmiddle,"-");
-                sidedefs[backsidecounter].sector=(x*2)+y*2*(C_SIZE-1)+1;
+                sidedefs[backsidecounter].sector=(x*2)+y*2*(C_SIZE-1);
 
                 sidecounter++;
                 backsidecounter++;
@@ -205,7 +205,7 @@ int main(int argc, char *argv[]){
                 linedefs[counter].blocking=1;
                 linedefs[counter].twosided=0;
                 linedefs[counter].special=9;
-                linedefs[counter].id_S1=sidecounter;
+                linedefs[counter].id_S1=sidecounter+1;
                 linedefs[counter].id_S2=-1;
                 counter++;
                 //L3
@@ -222,11 +222,11 @@ int main(int argc, char *argv[]){
                 //SL1
                 sidedefs[sidecounter].id=sidecounter;
                 strcpy(sidedefs[sidecounter].Textmiddle,"-");
-                sidedefs[sidecounter].sector=(x*2)+y*2*(C_SIZE-1);
+                sidedefs[sidecounter].sector=(x*2)+y*2*(C_SIZE-1)-2*(C_SIZE-1)+1;
                 //SL1-2
                 sidedefs[backsidecounter].id=backsidecounter;
                 strcpy(sidedefs[backsidecounter].Textmiddle,"-");
-                sidedefs[backsidecounter].sector=(x*2)+y*2*(C_SIZE-1)-C_SIZE;
+                sidedefs[backsidecounter].sector=(x*2)+y*2*(C_SIZE-1);
                 sidecounter++;
                 backsidecounter++;
 
@@ -239,11 +239,11 @@ int main(int argc, char *argv[]){
                 //SL3-1
                 sidedefs[sidecounter].id=sidecounter;
                 strcpy(sidedefs[sidecounter].Textmiddle,"-");
-                sidedefs[sidecounter].sector=(x*2)+y*2*(C_SIZE-1);
+                sidedefs[sidecounter].sector=(x*2)+y*2*(C_SIZE-1)+1;
                 //SL3-2
                 sidedefs[backsidecounter].id=backsidecounter;
                 strcpy(sidedefs[backsidecounter].Textmiddle,"-");
-                sidedefs[backsidecounter].sector=(x*2)+y*2*(C_SIZE-1)+1;
+                sidedefs[backsidecounter].sector=(x*2)+y*2*(C_SIZE-1);
                 sidecounter++;
                 backsidecounter++;
 
@@ -299,11 +299,11 @@ int main(int argc, char *argv[]){
                 //SL3-1
                 sidedefs[sidecounter].id=sidecounter;
                 strcpy(sidedefs[sidecounter].Textmiddle,"-");
-                sidedefs[sidecounter].sector=(x*2)+y*2*(C_SIZE-1);
+                sidedefs[sidecounter].sector=(x*2)+y*2*(C_SIZE-1)+1;
                 //SL3-2
                 sidedefs[backsidecounter].id=backsidecounter;
                 strcpy(sidedefs[backsidecounter].Textmiddle,"-");
-                sidedefs[backsidecounter].sector=(x*2)+y*2*(C_SIZE-1)+1;
+                sidedefs[backsidecounter].sector=(x*2)+y*2*(C_SIZE-1);
                 sidecounter++;
                 backsidecounter++;
             }else{
@@ -341,11 +341,11 @@ int main(int argc, char *argv[]){
                 //SL1-1
                 sidedefs[sidecounter].id=sidecounter;
                 strcpy(sidedefs[sidecounter].Textmiddle,"-");
-                sidedefs[sidecounter].sector=(x*2)+y*2*(C_SIZE-1);
+                sidedefs[sidecounter].sector=(x*2)+y*2*(C_SIZE-1)-2*(C_SIZE-1)+1;
                 //SL1-2
                 sidedefs[backsidecounter].id=backsidecounter;
                 strcpy(sidedefs[backsidecounter].Textmiddle,"-");
-                sidedefs[backsidecounter].sector=(x*2)+y*2*(C_SIZE-1)-C_SIZE;
+                sidedefs[backsidecounter].sector=(x*2)+y*2*(C_SIZE-1);
                 sidecounter++;
                 backsidecounter++;
 
@@ -363,11 +363,11 @@ int main(int argc, char *argv[]){
                 //SL3-1
                 sidedefs[sidecounter].id=sidecounter;
                 strcpy(sidedefs[sidecounter].Textmiddle,"-");
-                sidedefs[sidecounter].sector=(x*2)+y*2*(C_SIZE-1);
+                sidedefs[sidecounter].sector=(x*2)+y*2*(C_SIZE-1)+1;
                 //SL3-2
                 sidedefs[backsidecounter].id=backsidecounter;
                 strcpy(sidedefs[backsidecounter].Textmiddle,"-");
-                sidedefs[backsidecounter].sector=(x*2)+y*2*(C_SIZE-1)+1;
+                sidedefs[backsidecounter].sector=(x*2)+y*2*(C_SIZE-1);
                 sidecounter++;
                 backsidecounter++;
             }
