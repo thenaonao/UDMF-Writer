@@ -63,6 +63,7 @@ float interpolate(float a0, float a1, float w);
 float dotproduct(int ix,int iy, float x, float y);
 void generateRandomVector(int ix, int iy,float* vx, float* vy);
 float perlin(float x,float y);
+float AQWABS(float a);
 
 void generateZMap();
 void generateVertices(float h);
@@ -168,7 +169,7 @@ int main(int argc, char *argv[]){
 
     
     printf("Job Done!\n");
-    printf("Nummber of sidedefs: %d\n%s\n",backsidecounter,(backsidecounter>65535)?"Generated too many sidedefs, please retry!":"Ok!");
+    printf("Nummber of sidedefs: %d\n%s\n",backsidecounter,(backsidecounter>65535*2)?"Generated too many sidedefs, please retry!":"Ok!");
     fclose(fptr);
     return 0;
 }
@@ -617,4 +618,8 @@ float AQWConvolution(float *tab,int x,int y){
         }
     }
     return ret;
+}
+
+float AQWABS(float a){
+    return a<0?-a:a;
 }
