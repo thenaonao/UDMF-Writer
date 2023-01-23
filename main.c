@@ -6,7 +6,7 @@
 
 #define C_SIZE 136
 #define C_MAP_LENGTH 32768.0
-#define C_MAP_MAX_HEIGHT 768.0
+#define C_MAP_MAX_HEIGHT 1536.0
 
 #define DEBUG
 
@@ -68,6 +68,8 @@ void generateZMap();
 void generateVertices(float h);
 int generateLineAndSidedefs(unsigned int c);
 void generateSectors();
+
+float AQWConvolution(float *tab,int x,int y);
 
 int main(int argc, char *argv[]){
 
@@ -219,13 +221,26 @@ float perlin(float x,float y){
 void generateZMap(){
     printf("Generating vertices height...");
     int zcount=0;
+    float zbuffer[C_SIZE*C_SIZE];
     for(float y=0;y<C_SIZE/8;y+=0.125){
         for (float x=0;x<C_SIZE/8;x+=0.125)
         {
             if(x==0 || y==0 || x==C_SIZE/8-0.125 || y==C_SIZE/8-0.125){
-                zfloor[zcount]=0;//We tie it to 0
+                zbuffer[zcount]=0;//We tie it to 0
             }else{
-                zfloor[zcount]=perlin(x,y)*C_MAP_MAX_HEIGHT;
+                zbuffer[zcount]=perlin(x,y)*C_MAP_MAX_HEIGHT;
+            }
+            zcount++;
+        }
+    }
+    zcount=0;
+    for(float y=0;y<C_SIZE;y++){
+        for (float x=0;x<C_SIZE;x++)
+        {
+            if(x==0 || y==0 || x==C_SIZE-1 || y==C_SIZE-1){
+                zfloor[zcount]=0;
+            }else{
+                zfloor[zcount]=AQWConvolution(zbuffer,(int)x,(int)y);
             }
             zcount++;
         }
@@ -578,4 +593,28 @@ void generateSectors(){
         
     }
     printf("Finished!\n");
+}
+
+//I dont do the matrix flip, because the chosen matrix is squared inversible.
+float AQWConvolution(float *tab,int x,int y){
+    float ret=0;
+    float Kernel[5][5]={{0.04,0.04,0.04,0.04,0.04},{0.04,0.04,0.04,0.04,0.04},{0.04,0.04,0.04,0.04,0.04},{0.04,0.04,0.04,0.04,0.04},{0.04,0.04,0.04,0.04,0.04}};
+    int xval=0;
+    int yval=0;
+    for(int xi=0;xi<5;xi++){
+        for(int yi=0;yi<5;yi++){
+            xval=x+xi-2;
+            yval=y+yi-2;
+            if((xval<0 && yval<0)|| (xval>=C_SIZE && yval>=C_SIZE)){
+                continue;//So its like adding 0
+            }else if(xval<0 || xval>=C_SIZE){
+                continue;//So its like adding 0
+            }else if(yval<0 || yval>=C_SIZE){
+                continue;//So its like adding 0
+            }else{
+                ret+=(tab[xval+yval*C_SIZE]*Kernel[xi][yi]);
+            }
+        }
+    }
+    return ret;
 }
