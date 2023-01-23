@@ -88,7 +88,7 @@ int main(int argc, char *argv[]){
     for(float y=0;y<C_SIZE/16;y+=0.0625){
         for (float x=0;x<C_SIZE/16;x+=0.0625)
         {
-            if(x==0 || y==0 || x==C_SIZE-0.0625 || y==C_SIZE-0.0625){
+            if(x==0 || y==0 || x==C_SIZE/16-0.0625 || y==C_SIZE/16-0.0625){
                 zfloor[zcount]=0;//We tie it to 0
             }else{
                 zfloor[zcount]=perlin(x,y)*C_MAP_MAX_HEIGHT;
