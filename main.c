@@ -10,10 +10,8 @@
 
 #define DEBUG
 
-float interpolate(float a0, float a1, float w);
-float dotproduct(int ix,int iy, float x, float y);
-void generateRandomVector(int ix, int iy,float* vx, float* vy);
-float perlin(float x,float y);
+
+
 
 
 struct vertex{
@@ -53,14 +51,23 @@ struct sector{
     unsigned int id; //Sector ID
 };
 
-
-
+//Global vars
 struct vertex vertices[C_SIZE*C_SIZE];
-struct linedef linedefs[(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))]; //Ouch thats a lot!
-struct sidedef sidedefs[2*(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))]; //should be the same as linedefs
+struct linedef linedefs[(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))];
+struct sidedef sidedefs[2*(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))];
 struct sector sectors[2*(C_SIZE-1)*(C_SIZE-1)];
-
 float zfloor[C_SIZE*C_SIZE];
+
+
+float interpolate(float a0, float a1, float w);
+float dotproduct(int ix,int iy, float x, float y);
+void generateRandomVector(int ix, int iy,float* vx, float* vy);
+float perlin(float x,float y);
+
+void generateZMap();
+void generateVertices(float h);
+int generateLineAndSidedefs(unsigned int c);
+void generateSectors();
 
 int main(int argc, char *argv[]){
 
@@ -71,10 +78,10 @@ int main(int argc, char *argv[]){
     float h=C_MAP_LENGTH/C_SIZE;
     srand(time(NULL));
     
-    unsigned int counter=0;
-    unsigned int sidecounter=0;
-    unsigned int backsidecounter=(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1));
-    unsigned int sectorcounter=0;
+
+    
+
+    
 
     #ifdef DEBUG
     printf("Theorical number max of vertices: %d\n",C_SIZE*C_SIZE);
@@ -83,6 +90,132 @@ int main(int argc, char *argv[]){
     printf("Theorical number max of sectors : %d\n",2*(C_SIZE-1)*(C_SIZE-1));
     #endif
 
+    generateZMap();
+    generateVertices(h);
+    unsigned int backsidecounter=(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1));
+    backsidecounter=generateLineAndSidedefs(backsidecounter);
+    generateSectors();
+    
+    printf("Creating TEXTMAP Lump.\n");
+    FILE *fptr;
+    fptr=fopen("TEXTMAP","w+");
+    
+    //Writes the header of the file
+    printf("Writing Header..........");
+    fprintf(fptr,"%s","namespace = \"zdoom\";\n");
+    printf("Finished!\n");
+
+    //Writes each vertex in the file
+    printf("Writing Vertices");
+    for(int i=0;i<C_SIZE*C_SIZE;i++){
+        fprintf(fptr,"vertex // %d\n{\nx = %.1f;\ny = %.1f;\nzfloor = %.1f;\n}\n\n",vertices[i].id,vertices[i].x,vertices[i].y,vertices[i].z);
+        //printf("%f\n",vertices[i].z);
+        if(C_SIZE>=4){
+            if(i%(C_SIZE*C_SIZE/10)==0 &&i!=0){
+                printf(".");
+            }
+        }
+    }
+    printf("Finished!\n");
+
+    //Writes each linedefs...
+    printf("Writing Linedefs");
+    for(int i=0;i<(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1));i++){
+        if(i!=0 && linedefs[i].id==0){
+            continue;
+        }
+        fprintf(fptr,"linedef // %d\n{\nv1 = %d;\nv2 = %d;\nspecial = %d;\nsidefront = %d;\nsideback = %d;\n%s = true;\ndontdraw = true;\n}\n\n",linedefs[i].id,linedefs[i].id_V1,linedefs[i].id_V2,linedefs[i].special,linedefs[i].id_S1,linedefs[i].id_S2,(linedefs[i].blocking==1)?"blocking":"twosided");
+        if(C_SIZE>=4){
+            if(i%((C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))/10)==0 &&i!=0){
+                printf(".");
+            }
+        }
+    }
+    printf("Finished!\n");
+
+    //Writes each sidedefs...
+    printf("Writing Sidedefs");
+    for(int i=0;i<backsidecounter;i++){
+        /*if( i>=sidecounter && sidedefs[i].sector==0 ){
+            continue;
+        }*/
+        fprintf(fptr,"sidedef // %d\n{\noffsetx = 0;\noffsety = 0;\ntexturetop = \"-\";\ntexturebottom = \"-\";\ntexturemiddle = \"%s\";\nsector = %d;\n}\n\n",sidedefs[i].id,sidedefs[i].Textmiddle,sidedefs[i].sector);
+        if(i%((2*(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1)))/10)==0 &&i!=0){
+            printf(".");
+        }
+    }
+    printf("Finished!\n");
+
+    //Writes each sectors...
+    printf("Writing Sectors");
+    for(int i=0;i<2*(C_SIZE-1)*(C_SIZE-1);i++){
+        /*if(i!=0 && sectors[i].id==0){
+            continue;
+        }*/
+        //fprintf(fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\nspecial = %d;\nid = %d;\n}\n\n",sectors[i].id,sectors[i].floor,sectors[i].ceil,sectors[i].textfloor,sectors[i].textceil,160,0,sectors[i].id);
+        fprintf(fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\nspecial = %d;\n}\n\n",sectors[i].id,sectors[i].floor,sectors[i].ceil,sectors[i].textfloor,sectors[i].textceil,160,0);
+        if(C_SIZE>=4){
+            if(i%(2*(C_SIZE-1)*(C_SIZE-1)/10)==0 &&i!=0){
+                printf(".");
+            }
+        }
+    }
+    printf("Finished!\n");
+
+    //Things here...
+
+    
+    printf("Job Done!\n");
+    fclose(fptr);
+    return 0;
+}
+
+//From wikipedia, "https://en.wikipedia.org/wiki/Perlin_noise"
+//Adapted a bit for my purpose.
+float interpolate(float a0, float a1, float w){
+    if (0.0 > w) return a0;
+    if (1.0 < w) return a1;
+    return (a1 - a0) * ((w * (w * 6.0 - 15.0) + 10.0) * w * w * w) + a0;
+}
+
+float dotproduct(int ix,int iy, float x, float y){
+    float vx,vy;
+    generateRandomVector(ix, iy,&vx,&vy);
+    float dx = x - (float)ix;
+    float dy = y - (float)iy;
+    return (dx*vx+ dy*vy);
+}
+void generateRandomVector(int ix, int iy,float* vx, float* vy){
+    const unsigned w = 8 * sizeof(unsigned);
+    const unsigned s = w / 2; // rotation width
+    unsigned a = ix, b = iy;
+    a *= 3284157443; b ^= a << s | a >> w-s;
+    b *= 1911520717; a ^= b << s | b >> w-s;
+    a *= 2048419325;
+    float random = a * (3.14159265 / ~(~0u >> 1)); // in [0, 2*Pi]
+    *vx = cos(random);
+    *vy = sin(random);
+}
+float perlin(float x,float y){
+    int x0 = (int)floor(x);
+    int x1 = x0 + 1;
+    int y0 = (int)floor(y);
+    int y1 = y0 + 1;
+    float sx = x - (float)x0;
+    float sy = y - (float)y0;
+    float n0, n1, ix0, ix1, value;
+
+    n0 = dotproduct(x0, y0, x, y);
+    n1 = dotproduct(x1, y0, x, y);
+    ix0 = interpolate(n0, n1, sx);
+    n0 = dotproduct(x0, y1, x, y);
+    n1 = dotproduct(x1, y1, x, y);
+    ix1 = interpolate(n0, n1, sx);
+    value = interpolate(ix0, ix1, sy);
+    return value;
+}
+
+void generateZMap(){
     printf("Generating vertices height...");
     int zcount=0;
     for(float y=0;y<C_SIZE/16;y+=0.0625){
@@ -98,7 +231,11 @@ int main(int argc, char *argv[]){
         
     }
     printf("Finished!\n");
+}
+
+void generateVertices(float h){
     printf("Creating the Vertices");
+    int counter=0;
     for(float y=0;y<C_SIZE;y++){
         for(float x=0;x<C_SIZE;x++){
             //Vertices
@@ -115,9 +252,11 @@ int main(int argc, char *argv[]){
         }
     }
     printf("Finished!\n");
+}
 
-    counter=0; //We reset it... I use it as "Linecounter"
-
+int generateLineAndSidedefs(unsigned int backsidecounter){
+    unsigned int counter=0;
+    unsigned int sidecounter=0;
     printf("Creating the Linedefs & Sidedefs & Sectors");
     for(float y=0;y<C_SIZE;y++){
         for(float x=0;x<C_SIZE;x++){
@@ -404,7 +543,11 @@ int main(int argc, char *argv[]){
         }   
     }
     printf("Finished!\n");
+    return backsidecounter;//sloppy implementation, but im lazy
+}
 
+void generateSectors(){
+    unsigned int sectorcounter=0;
     printf("Creating the Sectors");
     for(float y=0;y<C_SIZE-1;y++){
         for(float x=0;x<C_SIZE-1;x++){
@@ -434,128 +577,4 @@ int main(int argc, char *argv[]){
         
     }
     printf("Finished!\n");
-
-    printf("Creating TEXTMAP Lump.\n");
-    FILE *fptr;
-    fptr=fopen("TEXTMAP","w+");
-    
-    //Writes the header of the file
-    printf("Writing Header..........");
-    fprintf(fptr,"%s","namespace = \"zdoom\";\n");
-    printf("Finished!\n");
-
-    //Writes each vertex in the file
-    printf("Writing Vertices");
-    for(int i=0;i<C_SIZE*C_SIZE;i++){
-        fprintf(fptr,"vertex // %d\n{\nx = %.1f;\ny = %.1f;\nzfloor = %.1f;\n}\n\n",vertices[i].id,vertices[i].x,vertices[i].y,vertices[i].z);
-        //printf("%f\n",vertices[i].z);
-        if(C_SIZE>=4){
-            if(i%(C_SIZE*C_SIZE/10)==0 &&i!=0){
-                printf(".");
-            }
-        }
-    }
-    printf("Finished!\n");
-
-    //Writes each linedefs...
-    printf("Writing Linedefs");
-    for(int i=0;i<(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1));i++){
-        if(i!=0 && linedefs[i].id==0){
-            continue;
-        }
-        fprintf(fptr,"linedef // %d\n{\nv1 = %d;\nv2 = %d;\nspecial = %d;\nsidefront = %d;\nsideback = %d;\n%s = true;\ndontdraw = true;\n}\n\n",linedefs[i].id,linedefs[i].id_V1,linedefs[i].id_V2,linedefs[i].special,linedefs[i].id_S1,linedefs[i].id_S2,(linedefs[i].blocking==1)?"blocking":"twosided");
-        if(C_SIZE>=4){
-            if(i%((C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))/10)==0 &&i!=0){
-                printf(".");
-            }
-        }
-    }
-    printf("Finished!\n");
-
-    //Writes each sidedefs...
-    printf("Writing Sidedefs");
-    for(int i=0;i<backsidecounter;i++){
-        /*if( i>=sidecounter && sidedefs[i].sector==0 ){
-            continue;
-        }*/
-        fprintf(fptr,"sidedef // %d\n{\noffsetx = 0;\noffsety = 0;\ntexturetop = \"-\";\ntexturebottom = \"-\";\ntexturemiddle = \"%s\";\nsector = %d;\n}\n\n",sidedefs[i].id,sidedefs[i].Textmiddle,sidedefs[i].sector);
-        if(i%((2*(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1)))/10)==0 &&i!=0){
-            printf(".");
-        }
-    }
-    printf("Finished!\n");
-
-    //Writes each sectors...
-    printf("Writing Sectors");
-    for(int i=0;i<2*(C_SIZE-1)*(C_SIZE-1);i++){
-        /*if(i!=0 && sectors[i].id==0){
-            continue;
-        }*/
-        //fprintf(fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\nspecial = %d;\nid = %d;\n}\n\n",sectors[i].id,sectors[i].floor,sectors[i].ceil,sectors[i].textfloor,sectors[i].textceil,160,0,sectors[i].id);
-        fprintf(fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\nspecial = %d;\n}\n\n",sectors[i].id,sectors[i].floor,sectors[i].ceil,sectors[i].textfloor,sectors[i].textceil,160,0);
-        if(C_SIZE>=4){
-            if(i%(2*(C_SIZE-1)*(C_SIZE-1)/10)==0 &&i!=0){
-                printf(".");
-            }
-        }
-    }
-    printf("Finished!\n");
-
-    //Things here...
-
-    
-    printf("Job Done!\n");
-    fclose(fptr);
-
-    #ifdef DEBUG
-    printf("Linedefs count: %d\n",counter);
-    printf("Sidedefs count: %d\n",backsidecounter);
-    printf("Sectors count : %d\n",sectorcounter);
-    #endif
-    return 0;
-}
-
-//From wikipedia, "https://en.wikipedia.org/wiki/Perlin_noise"
-//Adapted a bit for my purpose.
-float interpolate(float a0, float a1, float w){
-    if (0.0 > w) return a0;
-    if (1.0 < w) return a1;
-    return (a1 - a0) * ((w * (w * 6.0 - 15.0) + 10.0) * w * w * w) + a0;
-}
-
-float dotproduct(int ix,int iy, float x, float y){
-    float vx,vy;
-    generateRandomVector(ix, iy,&vx,&vy);
-    float dx = x - (float)ix;
-    float dy = y - (float)iy;
-    return (dx*vx+ dy*vy);
-}
-void generateRandomVector(int ix, int iy,float* vx, float* vy){
-    const unsigned w = 8 * sizeof(unsigned);
-    const unsigned s = w / 2; // rotation width
-    unsigned a = ix, b = iy;
-    a *= 3284157443; b ^= a << s | a >> w-s;
-    b *= 1911520717; a ^= b << s | b >> w-s;
-    a *= 2048419325;
-    float random = a * (3.14159265 / ~(~0u >> 1)); // in [0, 2*Pi]
-    *vx = cos(random);
-    *vy = sin(random);
-}
-float perlin(float x,float y){
-    int x0 = (int)floor(x);
-    int x1 = x0 + 1;
-    int y0 = (int)floor(y);
-    int y1 = y0 + 1;
-    float sx = x - (float)x0;
-    float sy = y - (float)y0;
-    float n0, n1, ix0, ix1, value;
-
-    n0 = dotproduct(x0, y0, x, y);
-    n1 = dotproduct(x1, y0, x, y);
-    ix0 = interpolate(n0, n1, sx);
-    n0 = dotproduct(x0, y1, x, y);
-    n1 = dotproduct(x1, y1, x, y);
-    ix1 = interpolate(n0, n1, sx);
-    value = interpolate(ix0, ix1, sy);
-    return value;
 }
