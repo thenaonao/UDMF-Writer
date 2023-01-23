@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include <math.h>
 
 #define C_SIZE 128
 #define C_MAP_LENGTH 8192.0
@@ -80,7 +81,7 @@ int main(int argc, char *argv[]){
             vertices[(int)y*C_SIZE+(int)x].id=counter;
             vertices[(int)y*C_SIZE+(int)x].x=h*x;
             vertices[(int)y*C_SIZE+(int)x].y=h*y;
-            vertices[(int)y*C_SIZE+(int)x].z=0.0; //(float) (rand()%64);
+            vertices[(int)y*C_SIZE+(int)x].z=(float) (rand()%64);
             if(C_SIZE>=4){
                 if( ((int)y*C_SIZE+(int)x)%(C_SIZE*C_SIZE/10)==0 &&((int)y*C_SIZE+(int)x)!=0){
                     printf(".");
@@ -386,16 +387,16 @@ int main(int argc, char *argv[]){
             //Sector1
             sectors[sectorcounter].floor=0;
             sectors[sectorcounter].ceil=4096;
-            strcpy(sectors[sectorcounter].textfloor,"FLOOR0_1");
-            strcpy(sectors[sectorcounter].textceil,"CEIL1_1");                
+            strcpy(sectors[sectorcounter].textfloor,"GRASS1");
+            strcpy(sectors[sectorcounter].textceil,"F_SKY1");                
             sectors[sectorcounter].lightlevel=1024; 
             sectors[sectorcounter].id=sectorcounter;
             sectorcounter++;
             //Sector2
             sectors[sectorcounter].floor=0;
             sectors[sectorcounter].ceil=4096;
-            strcpy(sectors[sectorcounter].textfloor,"FLOOR0_1");
-            strcpy(sectors[sectorcounter].textceil,"CEIL1_1");                
+            strcpy(sectors[sectorcounter].textfloor,"GRASS1");
+            strcpy(sectors[sectorcounter].textceil,"F_SKY1");                
             sectors[sectorcounter].lightlevel=1024; 
             sectors[sectorcounter].id=sectorcounter;
             sectorcounter++;
