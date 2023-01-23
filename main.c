@@ -4,8 +4,8 @@
 #include <time.h>
 #include <math.h>
 
-#define C_SIZE 128
-#define C_MAP_LENGTH 8192.0
+#define C_SIZE 136
+#define C_MAP_LENGTH 32768.0
 #define C_MAP_MAX_HEIGHT 768.0
 
 #define DEBUG
@@ -166,6 +166,7 @@ int main(int argc, char *argv[]){
 
     
     printf("Job Done!\n");
+    printf("Nummber of sidedefs: %d\n%s\n",backsidecounter,(backsidecounter>65535)?"Generated too many sidedefs, please retry!":"Ok!");
     fclose(fptr);
     return 0;
 }
@@ -218,10 +219,10 @@ float perlin(float x,float y){
 void generateZMap(){
     printf("Generating vertices height...");
     int zcount=0;
-    for(float y=0;y<C_SIZE/16;y+=0.0625){
-        for (float x=0;x<C_SIZE/16;x+=0.0625)
+    for(float y=0;y<C_SIZE/8;y+=0.125){
+        for (float x=0;x<C_SIZE/8;x+=0.125)
         {
-            if(x==0 || y==0 || x==C_SIZE/16-0.0625 || y==C_SIZE/16-0.0625){
+            if(x==0 || y==0 || x==C_SIZE/8-0.125 || y==C_SIZE/8-0.125){
                 zfloor[zcount]=0;//We tie it to 0
             }else{
                 zfloor[zcount]=perlin(x,y)*C_MAP_MAX_HEIGHT;
