@@ -6,8 +6,15 @@
 
 #define C_SIZE 128
 #define C_MAP_LENGTH 8192.0
+#define C_MAP_MAX_HEIGHT 768.0
 
 #define DEBUG
+
+float interpolate(float a0, float a1, float w);
+float dotproduct(int ix,int iy, float x, float y);
+void generateRandomVector(int ix, int iy,float* vx, float* vy);
+float perlin(float x,float y);
+
 
 struct vertex{
     unsigned int id;
@@ -53,6 +60,8 @@ struct linedef linedefs[(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))]; //Ouch thats a lot!
 struct sidedef sidedefs[2*(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))]; //should be the same as linedefs
 struct sector sectors[2*(C_SIZE-1)*(C_SIZE-1)];
 
+float zfloor[C_SIZE*C_SIZE];
+
 int main(int argc, char *argv[]){
 
     //Todo creates input arguments to set C_SIZE and C_MAP_LENGTH
@@ -74,6 +83,21 @@ int main(int argc, char *argv[]){
     printf("Theorical number max of sectors : %d\n",2*(C_SIZE-1)*(C_SIZE-1));
     #endif
 
+    printf("Generating vertices height...");
+    int zcount=0;
+    for(float y=0;y<C_SIZE/16;y+=0.0625){
+        for (float x=0;x<C_SIZE/16;x+=0.0625)
+        {
+            if(x==0 || y==0 || x==C_SIZE-0.0625 || y==C_SIZE-0.0625){
+                zfloor[zcount]=0;//We tie it to 0
+            }else{
+                zfloor[zcount]=perlin(x,y)*C_MAP_MAX_HEIGHT;
+            }
+            zcount++;
+        }
+        
+    }
+    printf("Finished!\n");
     printf("Creating the Vertices");
     for(float y=0;y<C_SIZE;y++){
         for(float x=0;x<C_SIZE;x++){
@@ -81,7 +105,7 @@ int main(int argc, char *argv[]){
             vertices[(int)y*C_SIZE+(int)x].id=counter;
             vertices[(int)y*C_SIZE+(int)x].x=h*x;
             vertices[(int)y*C_SIZE+(int)x].y=h*y;
-            vertices[(int)y*C_SIZE+(int)x].z=(float) (rand()%64);
+            vertices[(int)y*C_SIZE+(int)x].z=zfloor[(int)y*C_SIZE+(int)x];
             if(C_SIZE>=4){
                 if( ((int)y*C_SIZE+(int)x)%(C_SIZE*C_SIZE/10)==0 &&((int)y*C_SIZE+(int)x)!=0){
                     printf(".");
@@ -424,6 +448,7 @@ int main(int argc, char *argv[]){
     printf("Writing Vertices");
     for(int i=0;i<C_SIZE*C_SIZE;i++){
         fprintf(fptr,"vertex // %d\n{\nx = %.1f;\ny = %.1f;\nzfloor = %.1f;\n}\n\n",vertices[i].id,vertices[i].x,vertices[i].y,vertices[i].z);
+        //printf("%f\n",vertices[i].z);
         if(C_SIZE>=4){
             if(i%(C_SIZE*C_SIZE/10)==0 &&i!=0){
                 printf(".");
@@ -488,4 +513,49 @@ int main(int argc, char *argv[]){
     printf("Sectors count : %d\n",sectorcounter);
     #endif
     return 0;
+}
+
+//From wikipedia, "https://en.wikipedia.org/wiki/Perlin_noise"
+//Adapted a bit for my purpose.
+float interpolate(float a0, float a1, float w){
+    if (0.0 > w) return a0;
+    if (1.0 < w) return a1;
+    return (a1 - a0) * ((w * (w * 6.0 - 15.0) + 10.0) * w * w * w) + a0;
+}
+
+float dotproduct(int ix,int iy, float x, float y){
+    float vx,vy;
+    generateRandomVector(ix, iy,&vx,&vy);
+    float dx = x - (float)ix;
+    float dy = y - (float)iy;
+    return (dx*vx+ dy*vy);
+}
+void generateRandomVector(int ix, int iy,float* vx, float* vy){
+    const unsigned w = 8 * sizeof(unsigned);
+    const unsigned s = w / 2; // rotation width
+    unsigned a = ix, b = iy;
+    a *= 3284157443; b ^= a << s | a >> w-s;
+    b *= 1911520717; a ^= b << s | b >> w-s;
+    a *= 2048419325;
+    float random = a * (3.14159265 / ~(~0u >> 1)); // in [0, 2*Pi]
+    *vx = cos(random);
+    *vy = sin(random);
+}
+float perlin(float x,float y){
+    int x0 = (int)floor(x);
+    int x1 = x0 + 1;
+    int y0 = (int)floor(y);
+    int y1 = y0 + 1;
+    float sx = x - (float)x0;
+    float sy = y - (float)y0;
+    float n0, n1, ix0, ix1, value;
+
+    n0 = dotproduct(x0, y0, x, y);
+    n1 = dotproduct(x1, y0, x, y);
+    ix0 = interpolate(n0, n1, sx);
+    n0 = dotproduct(x0, y1, x, y);
+    n1 = dotproduct(x1, y1, x, y);
+    ix1 = interpolate(n0, n1, sx);
+    value = interpolate(ix0, ix1, sy);
+    return value;
 }
