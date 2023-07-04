@@ -75,6 +75,7 @@ void generateSectors();
 void AddWater(FILE **fptr,int lastSideDefID);
 void injectThings();
 int getVertexIdFromSectorID(int id);
+float GetBaseHeight(float value);
 
 float AQWConvolution(float *tab,int x,int y);
 
@@ -249,7 +250,7 @@ void generateZMap(){
             if(x==0 || y==0 || x==C_SIZE/8-0.125 || y==C_SIZE/8-0.125){
                 zbuffer[zcount]=0;//We tie it to 0
             }else{
-                zbuffer[zcount]=perlin(x,y)*C_MAP_MAX_HEIGHT+perlin(4*x,4*y)*C_MAP_MAX_HEIGHT/4+perlin(16*x,16*y)*C_MAP_MAX_HEIGHT/16;
+                zbuffer[zcount]=perlin(x,y)*C_MAP_MAX_HEIGHT+perlin(4*x,4*y)*C_MAP_MAX_HEIGHT/4+perlin(16*x,16*y)*C_MAP_MAX_HEIGHT/16+GetBaseHeight(2*perlin(x/8,y/8));
             }
             zcount++;
         }
@@ -700,4 +701,32 @@ void AddWater(FILE **fptr,int lastSideDefID){
 
     //Sector
     fprintf(*fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\n}\n\n",2*(C_SIZE-1)*(C_SIZE-1),(int) -C_MAP_MAX_HEIGHT,(int) C_WaterHeight,"FWATER1","FWATER1",120);
+}
+
+float GetBaseHeight(float value){
+    float ret=0.0;
+    if(value >= 0.8){
+        ret = 3072.0;
+    }else if(value >=0.6){
+        ret = 2048.0;
+    }else if(value >=0.4){
+        ret = 1024.0;
+    }else if(value >=0.2){
+        ret = 128.0;
+    }else if(value > -0.2 && value < 0.2){
+        ret = 0.0;
+    }else if(value <= -0.2){
+        ret = -64.0;
+    }else if(value <= -0.4){
+        ret = -256.0;
+    }else if(value <= -0.5){
+        ret = -512.0;
+    }else if(value <= -0.6){
+        ret = -1024.0;
+    }else if(value <= -0.7){
+        ret = -2048.0;
+    }else{
+        ret = -4096.0;
+    }
+    return ret;
 }
