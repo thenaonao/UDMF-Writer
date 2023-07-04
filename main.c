@@ -48,8 +48,8 @@ struct sector{
     
     char textfloor[9];
     char textceil[9]; //texturefloor = "FLOOR0_1"; textureceiling = "CEIL1_1";
-    
-    int lightlevel; //Can be interesing if we want to cast fixed shadow from terrain... (For the future heh)
+    int special;
+    float lightlevel; //Can be interesing if we want to cast fixed shadow from terrain... (For the future heh)
     unsigned int id; //Sector ID
 };
 
@@ -166,7 +166,11 @@ int main(int argc, char *argv[]){
             continue;
         }*/
         //fprintf(fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\nspecial = %d;\nid = %d;\n}\n\n",sectors[i].id,sectors[i].floor,sectors[i].ceil,sectors[i].textfloor,sectors[i].textceil,160,0,sectors[i].id);
-        fprintf(fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\nspecial = %d;\n}\n\n",sectors[i].id,sectors[i].floor,sectors[i].ceil,sectors[i].textfloor,sectors[i].textceil,160,0);
+        if(sectors[i].special==0){
+            fprintf(fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\n}\n\n",sectors[i].id,sectors[i].floor,sectors[i].ceil,sectors[i].textfloor,sectors[i].textceil,sectors[i].lightlevel);
+        }else{
+            fprintf(fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\nspecial = %d;\n}\n\n",sectors[i].id,sectors[i].floor,sectors[i].ceil,sectors[i].textfloor,sectors[i].textceil,sectors[i].lightlevel,sectors[i].special);
+        }
         if(C_SIZE>=4){
             if(i%(2*(C_SIZE-1)*(C_SIZE-1)/10)==0 &&i!=0){
                 printf(".");
@@ -598,7 +602,7 @@ void generateSectors(){
             }
             
             strcpy(sectors[sectorcounter].textceil,"F_SKY1");                
-            sectors[sectorcounter].lightlevel=1024; 
+            sectors[sectorcounter].lightlevel=160.0; 
             sectors[sectorcounter].id=sectorcounter;
             sectorcounter++;
             
@@ -613,7 +617,7 @@ void generateSectors(){
                 strcpy(sectors[sectorcounter].textfloor,"GRASS1");
             }
             strcpy(sectors[sectorcounter].textceil,"F_SKY1");                
-            sectors[sectorcounter].lightlevel=1024; 
+            sectors[sectorcounter].lightlevel=160.0; 
             sectors[sectorcounter].id=sectorcounter;
             sectorcounter++;
 
