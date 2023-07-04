@@ -4,10 +4,12 @@
 #include <time.h>
 #include <math.h>
 
-#define C_SIZE 136
+#define C_SIZE 136 //width of vertices & height
 #define C_MAP_LENGTH 32768.0
 #define C_MAP_MAX_HEIGHT 1536.0
 
+#define C_MountainThreshold 512.0
+#define C_DirtThreshold 128.0
 #define DEBUG
 
 
@@ -69,6 +71,8 @@ void generateZMap();
 void generateVertices(float h);
 int generateLineAndSidedefs(unsigned int c);
 void generateSectors();
+void injectThings();
+int getVertexIdFromSectorID(int id);
 
 float AQWConvolution(float *tab,int x,int y);
 
@@ -166,8 +170,9 @@ int main(int argc, char *argv[]){
     printf("Finished!\n");
 
     //Things here...
-
-    
+    printf("Injecting Things...\n");
+    fprintf(fptr,"thing // 0\n{\nx = 128.0;\ny = 128.0;\ntype = 1;\n}");
+    printf("Finished!\n");
     printf("Job Done!\n");
     printf("Nummber of sidedefs: %d\n%s\n",backsidecounter,(backsidecounter>65535*2)?"Generated too many sidedefs, please retry!":"Ok!");
     fclose(fptr);
@@ -229,7 +234,7 @@ void generateZMap(){
             if(x==0 || y==0 || x==C_SIZE/8-0.125 || y==C_SIZE/8-0.125){
                 zbuffer[zcount]=0;//We tie it to 0
             }else{
-                zbuffer[zcount]=perlin(x,y)*C_MAP_MAX_HEIGHT;
+                zbuffer[zcount]=perlin(x,y)*C_MAP_MAX_HEIGHT+perlin(4*x,4*y)*C_MAP_MAX_HEIGHT/4+perlin(16*x,16*y)*C_MAP_MAX_HEIGHT/16;
             }
             zcount++;
         }
@@ -241,7 +246,7 @@ void generateZMap(){
             if(x==0 || y==0 || x==C_SIZE-1 || y==C_SIZE-1){
                 zfloor[zcount]=0;
             }else{
-                zfloor[zcount]=AQWConvolution(zbuffer,(int)x,(int)y);
+                zfloor[zcount]=zbuffer[zcount];//AQWConvolution(zbuffer,(int)x,(int)y);
             }
             zcount++;
         }
@@ -565,13 +570,27 @@ int generateLineAndSidedefs(unsigned int backsidecounter){
 
 void generateSectors(){
     unsigned int sectorcounter=0;
+    float V1,V2,V3,V4;
+    int id;
     printf("Creating the Sectors");
     for(float y=0;y<C_SIZE-1;y++){
         for(float x=0;x<C_SIZE-1;x++){
+            id = getVertexIdFromSectorID(sectorcounter);
+            V1 = vertices[id].z;
+            V2 = vertices[id+1].z;
+            V3 = vertices[id+C_SIZE].z;
+            V4 = vertices[id+C_SIZE].z;
             //Sector1
             sectors[sectorcounter].floor=0;
             sectors[sectorcounter].ceil=4096;
-            strcpy(sectors[sectorcounter].textfloor,"GRASS1");
+            if(V1 > C_MountainThreshold || V2 > C_MountainThreshold || V3 > C_MountainThreshold){
+                strcpy(sectors[sectorcounter].textfloor,"FLAT5_7");
+            }else if(V1 > C_DirtThreshold || V2 > C_DirtThreshold || V3 > C_DirtThreshold){
+                strcpy(sectors[sectorcounter].textfloor,"FLAT10");
+            }else{
+                strcpy(sectors[sectorcounter].textfloor,"GRASS1");
+            }
+            
             strcpy(sectors[sectorcounter].textceil,"F_SKY1");                
             sectors[sectorcounter].lightlevel=1024; 
             sectors[sectorcounter].id=sectorcounter;
@@ -579,7 +598,13 @@ void generateSectors(){
             //Sector2
             sectors[sectorcounter].floor=0;
             sectors[sectorcounter].ceil=4096;
-            strcpy(sectors[sectorcounter].textfloor,"GRASS1");
+            if(V1 > C_MountainThreshold || V2 > C_MountainThreshold || V3 > C_MountainThreshold){
+                strcpy(sectors[sectorcounter].textfloor,"FLAT5_7");
+            }else if(V1 > C_DirtThreshold || V3 > C_DirtThreshold || V4 > C_DirtThreshold){
+                strcpy(sectors[sectorcounter].textfloor,"FLAT10");
+            }else{
+                strcpy(sectors[sectorcounter].textfloor,"GRASS1");
+            }
             strcpy(sectors[sectorcounter].textceil,"F_SKY1");                
             sectors[sectorcounter].lightlevel=1024; 
             sectors[sectorcounter].id=sectorcounter;
@@ -622,4 +647,10 @@ float AQWConvolution(float *tab,int x,int y){
 
 float AQWABS(float a){
     return a<0?-a:a;
+}
+
+int getVertexIdFromSectorID(int id){
+    int i = (id/2)%(C_SIZE-1);
+    int j = id/(2*(C_SIZE-1));
+    return i+j*(C_SIZE);
 }
