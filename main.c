@@ -587,7 +587,7 @@ void generateSectors(){
             //Sector1
             sectors[sectorcounter].floor=0;
             sectors[sectorcounter].ceil=4096;
-            if(V1 > C_MountainThreshold || V3 > C_MountainThreshold || V4 > C_MountainThreshold){
+            if(V1 > C_MountainThreshold || V2 > C_MountainThreshold || V4 > C_MountainThreshold){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT5_7");
             }else if(V1 > C_DirtThreshold || V2 > C_DirtThreshold || V4 > C_DirtThreshold){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT10");
@@ -599,12 +599,13 @@ void generateSectors(){
             sectors[sectorcounter].lightlevel=1024; 
             sectors[sectorcounter].id=sectorcounter;
             sectorcounter++;
+            
             //Sector2
             sectors[sectorcounter].floor=0;
             sectors[sectorcounter].ceil=4096;
-            if(V1 > C_MountainThreshold || V3 > C_MountainThreshold || V4 > C_MountainThreshold){
+            if(V2 > C_MountainThreshold || V3 > C_MountainThreshold || V4 > C_MountainThreshold){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT5_7");
-            }else if(V1 > C_DirtThreshold || V2 > C_DirtThreshold || V4 > C_DirtThreshold){
+            }else if(V2 > C_DirtThreshold || V3 > C_DirtThreshold || V4 > C_DirtThreshold){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT10");
             }else{
                 strcpy(sectors[sectorcounter].textfloor,"GRASS1");
