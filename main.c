@@ -150,7 +150,9 @@ int main(int argc, char *argv[]){
         /*if( i>=sidecounter && sidedefs[i].sector==0 ){
             continue;
         }*/
-        fprintf(fptr,"sidedef // %d\n{\noffsetx = 0;\noffsety = 0;\ntexturetop = \"-\";\ntexturebottom = \"-\";\ntexturemiddle = \"%s\";\nsector = %d;\n}\n\n",sidedefs[i].id,sidedefs[i].Textmiddle,sidedefs[i].sector);
+    
+        //fprintf(fptr,"sidedef // %d\n{\noffsetx = 0;\noffsety = 0;\ntexturetop = \"-\";\ntexturebottom = \"-\";\ntexturemiddle = \"%s\";\nsector = %d;\n}\n\n",sidedefs[i].id,sidedefs[i].Textmiddle,sidedefs[i].sector);
+        fprintf(fptr,"sidedef // %d\n{\nsector = %d;\n}\n\n",sidedefs[i].id,sidedefs[i].sector);
         if(i%((2*(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1)))/10)==0 &&i!=0){
             printf(".");
         }
