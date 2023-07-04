@@ -5,8 +5,8 @@
 #include <math.h>
 
 #define C_SIZE 136 //width of vertices & height
-#define C_MAP_LENGTH 32768.0
-#define C_MAP_MAX_HEIGHT 1536.0
+#define C_MAP_LENGTH 16384.0 //32768.0
+#define C_MAP_MAX_HEIGHT 2048.0 //1536.0
 
 #define C_MountainThreshold 500.0
 #define C_DirtThreshold 150.0
@@ -588,7 +588,7 @@ void generateSectors(){
             id = getVertexIdFromSectorID(sectorcounter);
             V1 = vertices[id].z;
             V2 = vertices[id+1].z;
-            V3 = vertices[id+C_SIZE].z;
+            V3 = vertices[id+1+C_SIZE].z;
             V4 = vertices[id+C_SIZE].z;
             //Sector1
             sectors[sectorcounter].floor=0;
