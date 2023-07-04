@@ -4,9 +4,9 @@
 #include <time.h>
 #include <math.h>
 
-#define C_SIZE 136 //width of vertices & height
-#define C_MAP_LENGTH 32768.0 //32768.0
-#define C_MAP_MAX_HEIGHT 2048.0 //1536.0
+#define C_SIZE 40 //width of vertices & height 136
+#define C_MAP_LENGTH 8192.0 //32768.0
+#define C_MAP_MAX_HEIGHT 2048.0 //2048.0
 
 #define C_MountainThreshold 1024.0
 #define C_DirtThreshold 512.0
@@ -265,7 +265,7 @@ void generateZMap(){
         for (float x=0;x<C_SIZE;x++)
         {
             if(x==0 || y==0 || x==C_SIZE-1 || y==C_SIZE-1){
-                zfloor[zcount]=0;
+                zfloor[zcount]=0.0;
             }else{
                 zfloor[zcount]=AQWConvolution(zbuffer,(int)x,(int)y);
             }
@@ -615,7 +615,7 @@ void generateSectors(){
                 strcpy(sectors[sectorcounter].textfloor,"GRASS2");
             }
             
-            if (V1 <= C_WaterHeight || V2 < C_WaterHeight || V4 < C_WaterHeight){  
+            if (V1 < C_WaterHeight || V2 < C_WaterHeight || V4 < C_WaterHeight){  
                 strcpy(sectors[sectorcounter].textfloor,"FLAT19");
                 sectors[sectorcounter].tag=1;
             }
@@ -639,7 +639,7 @@ void generateSectors(){
                 strcpy(sectors[sectorcounter].textfloor,"GRASS2");
             }
             
-            if (V2 <= C_WaterHeight || V3 < C_WaterHeight || V4 < C_WaterHeight){  
+            if (V2 < C_WaterHeight || V3 < C_WaterHeight || V4 < C_WaterHeight){  
                 strcpy(sectors[sectorcounter].textfloor,"FLAT19");
                 sectors[sectorcounter].tag=1;
             }
@@ -680,6 +680,7 @@ float AQWConvolution(float *tab,int x,int y){
             }
         }
     }
+    if(ret !=ret){ printf("/!\\WARNING: Caught NaN!!\n");return 0;}
     return ret;
 }
 
