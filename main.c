@@ -6,10 +6,11 @@
 
 #define C_SIZE 136 //width of vertices & height
 #define C_MAP_LENGTH 16384.0 //32768.0
-#define C_MAP_MAX_HEIGHT 2048.0 //1536.0
+#define C_MAP_MAX_HEIGHT 1536.0 //1536.0
 
 #define C_MountainThreshold 500.0
 #define C_DirtThreshold 150.0
+#define C_WaterHeight 0.0
 #define DEBUG
 
 
@@ -597,6 +598,8 @@ void generateSectors(){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT5_7");
             }else if(V1 > C_DirtThreshold || V2 > C_DirtThreshold || V4 > C_DirtThreshold){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT10");
+            }else if(V1 < C_WaterHeight || V2 < C_WaterHeight || V4 > C_WaterHeight){
+                strcpy(sectors[sectorcounter].textfloor,"FLAT19");
             }else{
                 strcpy(sectors[sectorcounter].textfloor,"GRASS1");
             }
@@ -613,6 +616,8 @@ void generateSectors(){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT5_7");
             }else if(V2 > C_DirtThreshold || V3 > C_DirtThreshold || V4 > C_DirtThreshold){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT10");
+            }else if(V2 < C_WaterHeight || V3 < C_WaterHeight || V4 < C_WaterHeight){
+                strcpy(sectors[sectorcounter].textfloor,"FLAT19");
             }else{
                 strcpy(sectors[sectorcounter].textfloor,"GRASS1");
             }
