@@ -8,8 +8,8 @@
 #define C_MAP_LENGTH 32768.0
 #define C_MAP_MAX_HEIGHT 1536.0
 
-#define C_MountainThreshold 512.0
-#define C_DirtThreshold 128.0
+#define C_MountainThreshold 500.0
+#define C_DirtThreshold 150.0
 #define DEBUG
 
 
@@ -587,9 +587,9 @@ void generateSectors(){
             //Sector1
             sectors[sectorcounter].floor=0;
             sectors[sectorcounter].ceil=4096;
-            if(V1 > C_MountainThreshold || V2 > C_MountainThreshold || V3 > C_MountainThreshold){
+            if(V1 > C_MountainThreshold || V3 > C_MountainThreshold || V4 > C_MountainThreshold){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT5_7");
-            }else if(V1 > C_DirtThreshold || V2 > C_DirtThreshold || V3 > C_DirtThreshold){
+            }else if(V1 > C_DirtThreshold || V2 > C_DirtThreshold || V4 > C_DirtThreshold){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT10");
             }else{
                 strcpy(sectors[sectorcounter].textfloor,"GRASS1");
@@ -602,9 +602,9 @@ void generateSectors(){
             //Sector2
             sectors[sectorcounter].floor=0;
             sectors[sectorcounter].ceil=4096;
-            if(V1 > C_MountainThreshold || V2 > C_MountainThreshold || V3 > C_MountainThreshold){
+            if(V1 > C_MountainThreshold || V3 > C_MountainThreshold || V4 > C_MountainThreshold){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT5_7");
-            }else if(V1 > C_DirtThreshold || V3 > C_DirtThreshold || V4 > C_DirtThreshold){
+            }else if(V1 > C_DirtThreshold || V2 > C_DirtThreshold || V4 > C_DirtThreshold){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT10");
             }else{
                 strcpy(sectors[sectorcounter].textfloor,"GRASS1");
