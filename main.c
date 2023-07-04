@@ -8,8 +8,8 @@
 #define C_MAP_LENGTH 32768.0 //32768.0
 #define C_MAP_MAX_HEIGHT 2048.0 //1536.0
 
-#define C_MountainThreshold 500.0
-#define C_DirtThreshold 150.0
+#define C_MountainThreshold 1024.0
+#define C_DirtThreshold 512.0
 #define C_WaterHeight -128.0
 #define DEBUG
 
@@ -50,6 +50,7 @@ struct sector{
     char textfloor[9];
     char textceil[9]; //texturefloor = "FLOOR0_1"; textureceiling = "CEIL1_1";
     int special;
+    int tag;
     int lightlevel; //Can be interesing if we want to cast fixed shadow from terrain... (For the future heh)
     unsigned int id; //Sector ID
 };
@@ -165,14 +166,18 @@ int main(int argc, char *argv[]){
     //Writes each sectors...
     printf("Writing Sectors");
     for(int i=0;i<2*(C_SIZE-1)*(C_SIZE-1);i++){
-        /*if(i!=0 && sectors[i].id==0){
+        if(sectors[i].id==0 && sectors[i].tag!=0){
             continue;
-        }*/
+        }
         //fprintf(fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\nspecial = %d;\nid = %d;\n}\n\n",sectors[i].id,sectors[i].floor,sectors[i].ceil,sectors[i].textfloor,sectors[i].textceil,160,0,sectors[i].id);
-        if(sectors[i].special==0){
+        if(sectors[i].special==0 && sectors[i].tag==0){
             fprintf(fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\n}\n\n",sectors[i].id,sectors[i].floor,sectors[i].ceil,sectors[i].textfloor,sectors[i].textceil,sectors[i].lightlevel);
-        }else{
+        }else if(sectors[i].special==0){
+            fprintf(fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\nid = %d;\n}\n\n",sectors[i].id,sectors[i].floor,sectors[i].ceil,sectors[i].textfloor,sectors[i].textceil,sectors[i].lightlevel,sectors[i].tag);
+        }else if(sectors[i].tag==0){
             fprintf(fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\nspecial = %d;\n}\n\n",sectors[i].id,sectors[i].floor,sectors[i].ceil,sectors[i].textfloor,sectors[i].textceil,sectors[i].lightlevel,sectors[i].special);
+        }else{
+            fprintf(fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\nspecial = %d;\nid = %d;\n}\n\n",sectors[i].id,sectors[i].floor,sectors[i].ceil,sectors[i].textfloor,sectors[i].textceil,sectors[i].lightlevel,sectors[i].special,sectors[i].tag);
         }
         if(C_SIZE>=4){
             if(i%(2*(C_SIZE-1)*(C_SIZE-1)/10)==0 &&i!=0){
@@ -214,9 +219,9 @@ void generateRandomVector(int ix, int iy,float* vx, float* vy){
     const unsigned w = 8 * sizeof(unsigned);
     const unsigned s = w / 2; // rotation width
     unsigned a = ix, b = iy;
-    a *= 3284157443; b ^= a << s | a >> w-s;
-    b *= 1911520717; a ^= b << s | b >> w-s;
-    a *= 2048419325;
+    a *= rand(); b ^= a << s | a >> w-s;
+    b *= rand(); a ^= b << s | b >> w-s;
+    a *= rand();
     float random = a * (3.14159265 / ~(~0u >> 1)); // in [0, 2*Pi]
     *vx = cos(random);
     *vy = sin(random);
@@ -597,6 +602,7 @@ void generateSectors(){
             V3 = vertices[id+1+C_SIZE].z;
             V4 = vertices[id+C_SIZE].z;
             //Sector1
+            sectors[sectorcounter].tag=0;
             sectors[sectorcounter].floor=0;
             sectors[sectorcounter].ceil=4096;
             if(V1 > C_MountainThreshold || V2 > C_MountainThreshold || V4 > C_MountainThreshold){
@@ -605,8 +611,13 @@ void generateSectors(){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT10");
             }else if(V1 > C_WaterHeight || V2 > C_WaterHeight || V4 > C_WaterHeight){
                 strcpy(sectors[sectorcounter].textfloor,"GRASS1");
-            }else{  
+            }else{
+                strcpy(sectors[sectorcounter].textfloor,"GRASS2");
+            }
+            
+            if (V1 <= C_WaterHeight || V2 < C_WaterHeight || V4 < C_WaterHeight){  
                 strcpy(sectors[sectorcounter].textfloor,"FLAT19");
+                sectors[sectorcounter].tag=1;
             }
             
             strcpy(sectors[sectorcounter].textceil,"F_SKY1");                
@@ -615,6 +626,7 @@ void generateSectors(){
             sectorcounter++;
             
             //Sector2
+            sectors[sectorcounter].tag=0;
             sectors[sectorcounter].floor=0;
             sectors[sectorcounter].ceil=4096;
             if(V2 > C_MountainThreshold || V3 > C_MountainThreshold || V4 > C_MountainThreshold){
@@ -624,7 +636,12 @@ void generateSectors(){
             }else if(V2 > C_WaterHeight || V3 > C_WaterHeight || V4 > C_WaterHeight){
                 strcpy(sectors[sectorcounter].textfloor,"GRASS1");
             }else{
+                strcpy(sectors[sectorcounter].textfloor,"GRASS2");
+            }
+            
+            if (V2 <= C_WaterHeight || V3 < C_WaterHeight || V4 < C_WaterHeight){  
                 strcpy(sectors[sectorcounter].textfloor,"FLAT19");
+                sectors[sectorcounter].tag=1;
             }
             strcpy(sectors[sectorcounter].textceil,"F_SKY1");                
             sectors[sectorcounter].lightlevel=160; 
@@ -689,7 +706,7 @@ void AddWater(FILE **fptr,int lastSideDefID){
 
     //Linedefs
     fprintf(*fptr,"linedef // %d\n{\nv1 = %d;\nv2 = %d;\nsidefront = %d;\nsideback = -1;\n%s = true;\ndontdraw = true;\n}\n\n",(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))   , C_SIZE*C_SIZE+1, C_SIZE*C_SIZE ,  lastSideDefID  ,"blocking");
-    fprintf(*fptr,"linedef // %d\n{\nv1 = %d;\nv2 = %d;\nsidefront = %d;\nsideback = -1;\n%s = true;\ndontdraw = true;\nspecial = %d;\narg1 = 2;\narg3 = 255;\n}\n\n",(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))+1 , C_SIZE*C_SIZE+2, C_SIZE*C_SIZE+1, lastSideDefID+1,"blocking",160);
+    fprintf(*fptr,"linedef // %d\n{\nv1 = %d;\nv2 = %d;\nsidefront = %d;\nsideback = -1;\n%s = true;\ndontdraw = true;\nspecial = %d;\narg0 = 1;\narg1 = 2;\narg3 = 255;\n}\n\n",(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))+1 , C_SIZE*C_SIZE+2, C_SIZE*C_SIZE+1, lastSideDefID+1,"blocking",160);
     fprintf(*fptr,"linedef // %d\n{\nv1 = %d;\nv2 = %d;\nsidefront = %d;\nsideback = -1;\n%s = true;\ndontdraw = true;\n}\n\n",(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))+2 , C_SIZE*C_SIZE+3, C_SIZE*C_SIZE+2, lastSideDefID+2,"blocking");
     fprintf(*fptr,"linedef // %d\n{\nv1 = %d;\nv2 = %d;\nsidefront = %d;\nsideback = -1;\n%s = true;\ndontdraw = true;\n}\n\n",(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))+3 , C_SIZE*C_SIZE  , C_SIZE*C_SIZE+3, lastSideDefID+3,"blocking");
 
