@@ -5,12 +5,12 @@
 #include <math.h>
 
 #define C_SIZE 136 //width of vertices & height
-#define C_MAP_LENGTH 16384.0 //32768.0
-#define C_MAP_MAX_HEIGHT 1536.0 //1536.0
+#define C_MAP_LENGTH 32768.0 //32768.0
+#define C_MAP_MAX_HEIGHT 2048.0 //1536.0
 
 #define C_MountainThreshold 500.0
 #define C_DirtThreshold 150.0
-#define C_WaterHeight 0.0
+#define C_WaterHeight -128.0
 #define DEBUG
 
 
@@ -72,6 +72,7 @@ void generateZMap();
 void generateVertices(float h);
 int generateLineAndSidedefs(unsigned int c);
 void generateSectors();
+void AddWater(FILE **fptr,int lastSideDefID);
 void injectThings();
 int getVertexIdFromSectorID(int id);
 
@@ -184,6 +185,9 @@ int main(int argc, char *argv[]){
     printf("Injecting Things...\n");
     fprintf(fptr,"thing // 0\n{\nx = 128.0;\ny = 128.0;\ntype = 1;\n}");
     printf("Finished!\n");
+
+    AddWater(&fptr,backsidecounter);
+
     printf("Job Done!\n");
     printf("Nummber of sidedefs: %d\n%s\n",backsidecounter,(backsidecounter>65535*2)?"Generated too many sidedefs, please retry!":"Ok!");
     fclose(fptr);
@@ -257,7 +261,7 @@ void generateZMap(){
             if(x==0 || y==0 || x==C_SIZE-1 || y==C_SIZE-1){
                 zfloor[zcount]=0;
             }else{
-                zfloor[zcount]=zbuffer[zcount];//AQWConvolution(zbuffer,(int)x,(int)y);
+                zfloor[zcount]=AQWConvolution(zbuffer,(int)x,(int)y);
             }
             zcount++;
         }
@@ -598,10 +602,10 @@ void generateSectors(){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT5_7");
             }else if(V1 > C_DirtThreshold || V2 > C_DirtThreshold || V4 > C_DirtThreshold){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT10");
-            }else if(V1 < C_WaterHeight || V2 < C_WaterHeight || V4 > C_WaterHeight){
-                strcpy(sectors[sectorcounter].textfloor,"FLAT19");
-            }else{
+            }else if(V1 > C_WaterHeight || V2 > C_WaterHeight || V4 > C_WaterHeight){
                 strcpy(sectors[sectorcounter].textfloor,"GRASS1");
+            }else{  
+                strcpy(sectors[sectorcounter].textfloor,"FLAT19");
             }
             
             strcpy(sectors[sectorcounter].textceil,"F_SKY1");                
@@ -616,10 +620,10 @@ void generateSectors(){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT5_7");
             }else if(V2 > C_DirtThreshold || V3 > C_DirtThreshold || V4 > C_DirtThreshold){
                 strcpy(sectors[sectorcounter].textfloor,"FLAT10");
-            }else if(V2 < C_WaterHeight || V3 < C_WaterHeight || V4 < C_WaterHeight){
-                strcpy(sectors[sectorcounter].textfloor,"FLAT19");
-            }else{
+            }else if(V2 > C_WaterHeight || V3 > C_WaterHeight || V4 > C_WaterHeight){
                 strcpy(sectors[sectorcounter].textfloor,"GRASS1");
+            }else{
+                strcpy(sectors[sectorcounter].textfloor,"FLAT19");
             }
             strcpy(sectors[sectorcounter].textceil,"F_SKY1");                
             sectors[sectorcounter].lightlevel=160; 
@@ -669,4 +673,31 @@ int getVertexIdFromSectorID(int id){
     int i = (id/2)%(C_SIZE-1);
     int j = id/(2*(C_SIZE-1));
     return i+j*(C_SIZE);
+}
+
+void AddWater(FILE **fptr,int lastSideDefID){
+    //C_SIZE*C_SIZE Vertex
+    //(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1)) Linedef
+    //2*(C_SIZE-1)*(C_SIZE-1) Sector
+
+    //Vertices
+    fprintf(*fptr,"vertex // %d\n{\nx = %.1f;\ny = %.1f;\n}\n\n", C_SIZE*C_SIZE  , -32.0, 32.0);
+    fprintf(*fptr,"vertex // %d\n{\nx = %.1f;\ny = %.1f;\n}\n\n", C_SIZE*C_SIZE+1, -16.0, 32.0);
+    fprintf(*fptr,"vertex // %d\n{\nx = %.1f;\ny = %.1f;\n}\n\n", C_SIZE*C_SIZE+2, -16.0, 48.0);
+    fprintf(*fptr,"vertex // %d\n{\nx = %.1f;\ny = %.1f;\n}\n\n", C_SIZE*C_SIZE+3, -32.0, 48.0);
+
+    //Linedefs
+    fprintf(*fptr,"linedef // %d\n{\nv1 = %d;\nv2 = %d;\nsidefront = %d;\nsideback = -1;\n%s = true;\ndontdraw = true;\n}\n\n",(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))   , C_SIZE*C_SIZE+1, C_SIZE*C_SIZE ,  lastSideDefID  ,"blocking");
+    fprintf(*fptr,"linedef // %d\n{\nv1 = %d;\nv2 = %d;\nsidefront = %d;\nsideback = -1;\n%s = true;\ndontdraw = true;\nspecial = %d;\narg1 = 2;\narg3 = 255;\n}\n\n",(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))+1 , C_SIZE*C_SIZE+2, C_SIZE*C_SIZE+1, lastSideDefID+1,"blocking",160);
+    fprintf(*fptr,"linedef // %d\n{\nv1 = %d;\nv2 = %d;\nsidefront = %d;\nsideback = -1;\n%s = true;\ndontdraw = true;\n}\n\n",(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))+2 , C_SIZE*C_SIZE+3, C_SIZE*C_SIZE+2, lastSideDefID+2,"blocking");
+    fprintf(*fptr,"linedef // %d\n{\nv1 = %d;\nv2 = %d;\nsidefront = %d;\nsideback = -1;\n%s = true;\ndontdraw = true;\n}\n\n",(C_SIZE-1)*(C_SIZE+(2*C_SIZE-1))+3 , C_SIZE*C_SIZE  , C_SIZE*C_SIZE+3, lastSideDefID+3,"blocking");
+
+    //Sidedefs
+    fprintf(*fptr,"sidedef // %d\n{\ntexturemiddle = \"%s\";\nsector = %d;\n}\n\n",lastSideDefID  , "FWATER1",2*(C_SIZE-1)*(C_SIZE-1));
+    fprintf(*fptr,"sidedef // %d\n{\ntexturemiddle = \"%s\";\nsector = %d;\n}\n\n",lastSideDefID+1, "FWATER1",2*(C_SIZE-1)*(C_SIZE-1));
+    fprintf(*fptr,"sidedef // %d\n{\ntexturemiddle = \"%s\";\nsector = %d;\n}\n\n",lastSideDefID+2, "FWATER1",2*(C_SIZE-1)*(C_SIZE-1));
+    fprintf(*fptr,"sidedef // %d\n{\ntexturemiddle = \"%s\";\nsector = %d;\n}\n\n",lastSideDefID+3, "FWATER1",2*(C_SIZE-1)*(C_SIZE-1));
+
+    //Sector
+    fprintf(*fptr,"sector // %d\n{\nheightfloor = %d;\nheightceiling = %d;\ntexturefloor = \"%s\";\ntextureceiling = \"%s\";\nlightlevel = %d;\n}\n\n",2*(C_SIZE-1)*(C_SIZE-1),(int) -C_MAP_MAX_HEIGHT,(int) C_WaterHeight,"FWATER1","FWATER1",120);
 }
